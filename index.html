@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3부처 보도자료 검색</title>
+<style>
+  :root {
+    --bg: #f5f7fa; --card: #ffffff; --text: #1d2733; --muted: #5b6878;
+    --line: #dde3ea; --accent: #1f5fae; --accent-soft: #e6eef9; --warn: #b3261e; --warn-soft: #fbeaea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12161c; --card: #1b222b; --text: #e6ebf1; --muted: #9aa7b6;
+      --line: #2c3642; --accent: #7fb0ec; --accent-soft: #1f2e42; --warn: #f2a19b; --warn-soft: #3a2222;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif; line-height: 1.6; }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 16px 48px; }
+  header h1 { margin: 0 0 4px; font-size: 1.6rem; }
+  header p { margin: 0; color: var(--muted); }
+  section { margin-top: 32px; }
+  h2 { font-size: 1.15rem; margin: 0 0 12px; }
+  .search { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .search input { flex: 1 1 260px; padding: 12px 14px; font-size: 1rem; border: 1px solid var(--line);
+    border-radius: 10px; background: var(--card); color: var(--text); }
+  .search input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chips button { border: 1px solid var(--line); background: var(--card); color: var(--text);
+    padding: 8px 12px; border-radius: 999px; cursor: pointer; font-size: .9rem; }
+  .chips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  #count { margin: 14px 0 10px; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .badge { display: inline-block; font-size: .8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent); }
+  .card h3 { font-size: 1.02rem; margin: 10px 0 8px; }
+  .card p { margin: 0; color: var(--muted); font-size: .93rem; }
+  mark { background: #ffe58a; color: #1d2733; padding: 0 2px; border-radius: 3px; }
+  .empty { color: var(--muted); padding: 24px; text-align: center; border: 1px dashed var(--line); border-radius: 14px; }
+  .table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: .95rem; }
+  th, td { padding: 10px 14px; border-bottom: 1px solid var(--line); text-align: center; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { background: var(--accent-soft); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.diff { color: var(--warn); background: var(--warn-soft); font-weight: 700; }
+  .note { color: var(--muted); font-size: .88rem; margin-top: 8px; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  figure img { display: block; max-width: 100%; height: auto; margin: 0 auto; max-height: 240px; }
+  figcaption { color: var(--muted); font-size: .88rem; margin-top: 10px; text-align: center; }
+  .sheet iframe { width: 100%; height: 360px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+  footer { margin-top: 40px; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>5월 25일 호우 대응 · 3부처 보도자료 검색</h1>
+    <p>행정안전부 · 기상청 · 경찰청 보도자료를 부처나 본문 키워드로 찾아봅니다.</p>
+  </header>
+
+  <section aria-label="검색">
+    <div class="search">
+      <input id="q" type="search" placeholder="부처 또는 본문 키워드 (예: 1,820 / 경찰청 / 16:30)" aria-label="키워드 검색">
+    </div>
+    <div class="chips" id="chips" style="margin-top:10px"></div>
+    <div id="count" aria-live="polite">결과 0건</div>
+    <div class="grid" id="cards"></div>
+  </section>
+
+  <section>
+    <h2>부처별 정합성 매트릭스</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>사실</th><th>행정안전부</th><th>기상청</th><th>경찰청</th></tr></thead>
+        <tbody>
+          <tr><td>동원인원</td><td>1,820명</td><td>1,820명</td><td class="diff">1,800명</td></tr>
+          <tr><td>투입예산</td><td>23억원</td><td class="diff">25억원</td><td>23억원</td></tr>
+          <tr><td>발령시각 (중대본 1단계)</td><td>16:30</td><td class="diff">16:40</td><td>16:30</td></tr>
+          <tr><td>관할지역수 (광역)</td><td>17</td><td>17</td><td class="diff">16</td></tr>
+          <tr><td>인명피해</td><td class="diff">2명</td><td>3명</td><td>3명</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">붉은 칸은 다수값(2개 부처 이상이 같은 값)과 다르게 보고된 값입니다.</p>
+    <div class="sheet" id="sheet" hidden style="margin-top:14px">
+      <iframe id="sheetFrame" title="부처별 정합성 매트릭스 (구글 시트)" loading="lazy"></iframe>
+    </div>
+  </section>
+
+  <section>
+    <h2>외부 리소스</h2>
+    <figure>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg"
+           alt="대한민국 국기 (태극기)" width="360" height="240">
+      <figcaption>외부 이미지: 대한민국 국기 — 출처 Wikimedia Commons (퍼블릭 도메인)</figcaption>
+    </figure>
+  </section>
+
+  <footer>데이터: 보도자료데이터.json (가상 보도자료 3건) · 정적 페이지 · GitHub Pages</footer>
+</main>
+
+<script>
+  // 구글 시트 "파일 → 공유 → 웹에 게시 → 삽입" 의 iframe src 주소를 넣으면 시트가 함께 표시됩니다.
+  const SHEET_URL = "";
+
+  const DEPTS = ["전체", "행정안전부", "기상청", "경찰청"];
+  let articles = [], dept = "전체";
+  const $ = (id) => document.getElementById(id);
+
+  const plain = (s) => s.replace(/^#.*$/m, "").replace(/\*\*/g, "").replace(/---/g, "").replace(/\s+/g, " ").trim();
+  const summary = (s) => { const t = plain(s); return t.length > 150 ? t.slice(0, 150) + "…" : t; };
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const hl = (s, q) => {
+    const e = esc(s);
+    if (!q) return e;
+    const qe = esc(q).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return e.replace(new RegExp(qe, "g"), (m) => "<mark>" + m + "</mark>");
+  };
+
+  function render() {
+    const q = $("q").value.trim();
+    const list = articles.filter((a) =>
+      (dept === "전체" || a.부처 === dept) &&
+      (!q || a.부처.includes(q) || plain(a.본문).includes(q) || a.본문.includes(q)));
+    $("count").textContent = "결과 " + list.length + "건";
+    $("cards").innerHTML = list.length ? list.map((a) => {
+      // 키워드가 요약 범위 밖에 있으면 키워드 주변 문장을 보여줌
+      let text = summary(a.본문);
+      const body = plain(a.본문);
+      if (q && !text.includes(q) && body.includes(q)) {
+        const i = body.indexOf(q);
+        text = "…" + body.slice(Math.max(0, i - 60), i + 90) + "…";
+      }
+      return '<article class="card"><span class="badge">' + hl(a.부처, q) + "</span>" +
+        "<h3>" + esc(a.제목) + "</h3><p>" + hl(text, q) + "</p></article>";
+    }).join("") : '<div class="empty">조건에 맞는 보도자료가 없습니다.</div>';
+  }
+
+  $("chips").innerHTML = DEPTS.map((d) =>
+    '<button type="button" data-d="' + d + '" aria-pressed="' + (d === dept) + '">' + d + "</button>").join("");
+  $("chips").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    dept = b.dataset.d;
+    document.querySelectorAll("#chips button").forEach((x) => x.setAttribute("aria-pressed", x.dataset.d === dept));
+    render();
+  });
+  $("q").addEventListener("input", render);
+
+  if (SHEET_URL) { $("sheetFrame").src = SHEET_URL; $("sheet").hidden = false; }
+
+  fetch("보도자료데이터.json")
+    .then((r) => r.json())
+    .then((d) => { articles = d; render(); })
+    .catch(() => { $("count").textContent = "데이터를 불러오지 못했습니다"; });
+</script>
+</body>
+</html>
